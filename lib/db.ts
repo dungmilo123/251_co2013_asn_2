@@ -7,7 +7,7 @@ export const dbConfig = {
     database: 'LMS_DB',
 };
 
-export async function query({ query, values = [] }: { query: string;  values?: any[] }){
+export async function query({ query, values = [] }: { query: string; values?: any[] }) {
     const db = await mysql.createConnection(dbConfig);
     try{
         const [results] = await db.execute(query, values);
