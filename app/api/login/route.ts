@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { query } from '@/lib/db';
-import { setSession, type SessionUser } from '@/lib/auth';
+import { setSession } from '@/lib/auth';
+import { type SessionUser } from '@/lib/definitions';
 
 export async function POST(request: Request) {
     try {

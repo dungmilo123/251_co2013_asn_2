@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { BookOpen, Users, GraduationCap, Calendar, Award, TrendingUp, Clock, UserCheck } from 'lucide-react';
+import Link from 'next/link';
+import { BookOpen, Users, GraduationCap } from 'lucide-react';
 
 interface Course {
   course_id: number;
@@ -286,7 +287,9 @@ export default function InstructorDashboard() {
                             </div>
                           </td>
                           <td className="py-4">
-                            <div className="text-gray-900 font-medium">{course.title}</div>
+                            <Link href={`/dashboard/courses/${course.course_id}`} className="text-gray-900 font-medium hover:text-blue-600 transition-colors">
+                                {course.title}
+                            </Link>
                             {course.semester && (
                               <div className="text-sm text-gray-600 mt-1">{course.semester}</div>
                             )}
@@ -394,7 +397,7 @@ export default function InstructorDashboard() {
                       {roster.map((student, index) => (
                         <div
                           key={student.enrollment_id}
-                          className="roster-card rounded-xl p-6 bg-gradient-to-br from-gray-50 via-white to-blue-50/30 border border-gray-200"
+                          className="roster-card rounded-xl p-6 bg-linear-to-br from-gray-50 via-white to-blue-50/30 border border-gray-200"
                           style={{ animationDelay: `${1.4 + index * 0.1}s` }}
                         >
                           <div className="flex items-start justify-between mb-4">
@@ -406,8 +409,8 @@ export default function InstructorDashboard() {
                                 <span
                                   className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
                                     student.completion_status === 'Completed'
-                                      ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200'
-                                      : 'bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border border-blue-200'
+                                      ? 'bg-linear-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200'
+                                      : 'bg-linear-to-r from-blue-100 to-indigo-100 text-blue-800 border border-blue-200'
                                   }`}
                                 >
                                   {student.completion_status}

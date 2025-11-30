@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
     BookOpen,
     GraduationCap,
@@ -376,8 +377,8 @@ export default function StudentDashboard() {
                         <div
                             className={`relative rounded-2xl px-6 py-4 border-l-4 ${
                                 message.type === "success"
-                                    ? "bg-gradient-to-r from-green-50 to-emerald-50 border-l-green-500 text-green-800"
-                                    : "bg-gradient-to-r from-red-50 to-pink-50 border-l-red-500 text-red-800"
+                                    ? "bg-linear-to-r from-green-50 to-emerald-50 border-l-green-500 text-green-800"
+                                    : "bg-linear-to-r from-red-50 to-pink-50 border-l-red-500 text-red-800"
                             }`}
                         >
                             <div className="flex items-center gap-3">
@@ -471,9 +472,9 @@ export default function StudentDashboard() {
                                                             </div>
                                                         </td>
                                                         <td className="py-4">
-                                                            <div className="text-gray-900 font-medium">
+                                                            <Link href={`/dashboard/courses/${course.course_id}`} className="text-gray-900 font-medium hover:text-blue-600 transition-colors">
                                                                 {course.title}
-                                                            </div>
+                                                            </Link>
                                                             {course.department && (
                                                                 <div className="text-sm text-gray-600 mt-1">
                                                                     {
@@ -490,8 +491,8 @@ export default function StudentDashboard() {
                                                                 className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
                                                                     course.completion_status ===
                                                                     "Completed"
-                                                                        ? "bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200"
-                                                                        : "bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border border-blue-200"
+                                                                        ? "bg-linear-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200"
+                                                                        : "bg-linear-to-r from-blue-100 to-indigo-100 text-blue-800 border border-blue-200"
                                                                 }`}
                                                             >
                                                                 {
@@ -563,7 +564,7 @@ export default function StudentDashboard() {
                                     {availableCourses.map((course, index) => (
                                         <div
                                             key={course.course_id}
-                                            className="relative rounded-2xl p-6 border border-gray-200 bg-gradient-to-br from-gray-50 via-white to-blue-50/30"
+                                            className="relative rounded-2xl p-6 border border-gray-200 bg-linear-to-br from-gray-50 via-white to-blue-50/30"
                                             style={{
                                                 animationDelay: `${1.2 + index * 0.15}s`,
                                             }}
@@ -579,7 +580,9 @@ export default function StudentDashboard() {
                                                             •
                                                         </span>
                                                         <h3 className="text-xl font-bold text-gray-900">
-                                                            {course.title}
+                                                            <Link href={`/dashboard/courses/${course.course_id}`} className="hover:text-blue-600 transition-colors">
+                                                                {course.title}
+                                                            </Link>
                                                         </h3>
                                                     </div>
                                                     <div className="flex items-center gap-6 text-sm text-gray-600 mb-3">
@@ -637,7 +640,7 @@ export default function StudentDashboard() {
                                                                         }
                                                                         className="flex items-center gap-3 text-sm"
                                                                     >
-                                                                        <div className="flex-shrink-0">
+                                                                        <div className="shrink-0">
                                                                             {prereq.completed ? (
                                                                                 <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
                                                                                     <Check className="w-4 h-4 text-green-600" />
@@ -677,7 +680,7 @@ export default function StudentDashboard() {
                                                 course.prerequisites &&
                                                 course.prerequisites.length >
                                                     0 && (
-                                                    <div className="mb-4 p-4 rounded-xl bg-gradient-to-r from-red-50 to-pink-50 border-l-4 border-l-red-500">
+                                                    <div className="mb-4 p-4 rounded-xl bg-linear-to-r from-red-50 to-pink-50 border-l-4 border-l-red-500">
                                                         <div className="flex items-start gap-3">
                                                             <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
                                                             <div>
@@ -697,7 +700,7 @@ export default function StudentDashboard() {
                                                     </div>
                                                 )}
                                             {course.isFull && (
-                                                <div className="mb-4 p-4 rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 border-l-4 border-l-orange-500">
+                                                <div className="mb-4 p-4 rounded-xl bg-linear-to-r from-orange-50 to-amber-50 border-l-4 border-l-orange-500">
                                                     <div className="flex items-start gap-3">
                                                         <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5" />
                                                         <div>

@@ -1,13 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
     LogOut,
     User,
     BookOpen,
     Settings,
     TrendingUp,
-    Calendar,
 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -42,6 +42,14 @@ export default function DashboardLayout({
         } catch (error) {
             console.error("Logout failed:", error);
         }
+    };
+
+    const getDashboardLink = () => {
+        if (!user) return "/";
+        if (user.role === "Student") return "/dashboard/student";
+        if (user.role === "Instructor") return "/dashboard/instructor";
+        if (user.role === "Administrator") return "/dashboard/admin";
+        return "/";
     };
 
     return (
@@ -144,7 +152,7 @@ export default function DashboardLayout({
             `}</style>
 
             <div
-                className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/10 to-gray-100"
+                className="min-h-screen bg-linear-to-br from-gray-50 via-blue-50/10 to-gray-100"
                 style={{ fontFamily: "'DM Sans', sans-serif" }}
             >
                 {/* Modern Navigation Bar */}
@@ -152,7 +160,7 @@ export default function DashboardLayout({
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex justify-between items-center h-20">
                             {/* Logo and Brand */}
-                            <div className="flex items-center gap-4 user-card">
+                            <Link href={getDashboardLink()} className="flex items-center gap-4 cursor-pointer group">
                                 <div className="relative">
                                     <img
                                         src="/01_logobachkhoatoi.png"
@@ -163,7 +171,7 @@ export default function DashboardLayout({
                                 </div>
                                 <div>
                                     <h1
-                                        className="text-2xl font-bold tracking-tight"
+                                        className="text-2xl font-bold tracking-tight group-hover:text-blue-700 transition-colors"
                                         style={{ color: "#00558d" }}
                                     >
                                         Learning Hub
@@ -172,13 +180,13 @@ export default function DashboardLayout({
                                         Ho Chi Minh City University of Technology
                                     </p>
                                 </div>
-                            </div>
+                            </Link>
 
                             {/* User Info and Logout */}
                             {user && (
                                 <div className="flex items-center gap-6">
                                     {/* Role-based Navigation Hint */}
-                                    <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200">
+                                    <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200">
                                         {user.role === "Student" && (
                                             <BookOpen className="w-4 h-4 text-blue-600" />
                                         )}
@@ -194,9 +202,9 @@ export default function DashboardLayout({
                                     </div>
 
                                     {/* User Profile */}
-                                    <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-gradient-to-r from-white to-gray-50 border border-gray-200 shadow-md user-card">
+                                    <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-linear-to-r from-white to-gray-50 border border-gray-200 shadow-md user-card">
                                         <div className="relative">
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                                            <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
                                                 <User className="w-5 h-5 text-white" />
                                             </div>
                                             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
@@ -235,19 +243,19 @@ export default function DashboardLayout({
                     {/* Decorative Background Elements */}
                     <div className="fixed inset-0 pointer-events-none overflow-hidden">
                         <div className="absolute top-20 left-20 w-32 h-32 floating-shape opacity-10">
-                            <div className="w-full h-full bg-gradient-to-br from-blue-400 to-indigo-600 rounded-2xl transform rotate-12"></div>
+                            <div className="w-full h-full bg-linear-to-br from-blue-400 to-indigo-600 rounded-2xl transform rotate-12"></div>
                         </div>
                         <div
                             className="absolute top-40 right-32 w-24 h-24 floating-shape opacity-8"
                             style={{ animationDelay: "2s" }}
                         >
-                            <div className="w-full h-full bg-gradient-to-br from-blue-300 to-indigo-500 rotate-45"></div>
+                            <div className="w-full h-full bg-linear-to-br from-blue-300 to-indigo-500 rotate-45"></div>
                         </div>
                         <div
                             className="absolute bottom-20 left-1/2 w-16 h-16 floating-shape opacity-6"
                             style={{ animationDelay: "4s" }}
                         >
-                            <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-700 rounded-full"></div>
+                            <div className="w-full h-full bg-linear-to-br from-blue-500 to-indigo-700 rounded-full"></div>
                         </div>
                     </div>
 
