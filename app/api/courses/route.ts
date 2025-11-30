@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { query } from '@/lib/db';
-import { requireRole } from '@/lib/auth';
+import { requireAdministrator } from '@/lib/auth';
+import { handleApiError } from '@/lib/api-helpers';
 
 export async function GET(request : Request){
     try {
-        // Require Administrator role
-        await requireRole(['Administrator']);
+        // Require Administrator role with valid admin code
+        await requireAdministrator();
 
         const { searchParams } = new URL(request.url);
         const search = searchParams.get('search');
@@ -21,17 +22,14 @@ export async function GET(request : Request){
         const courses = await query({ query: sql, values });
         return NextResponse.json(courses);
     } catch (error: any) {
-        if (error.message === 'Unauthorized' || error.message === 'Forbidden') {
-            return NextResponse.json({ error: error.message }, { status: 403 });
-        }
-        return NextResponse.json({ error: 'Failed to fetch courses' }, { status: 500 });
+        return handleApiError(error, 'fetch courses');
     }
 }
 
 export async function POST(request: Request){
     try{
-        // Require Administrator role
-        await requireRole(['Administrator']);
+        // Require Administrator role with valid admin code
+        await requireAdministrator();
 
         const { code, title, credits } = await request.json();
 
@@ -41,9 +39,6 @@ export async function POST(request: Request){
         });
         return NextResponse.json({ message: 'Course created' });
     } catch (error: any) {
-        if (error.message === 'Unauthorized' || error.message === 'Forbidden') {
-            return NextResponse.json({ error: error.message }, { status: 403 });
-        }
-        return NextResponse.json({ message: error.message }, { status: 500 });
+        return handleApiError(error, 'create course');
     }
 }

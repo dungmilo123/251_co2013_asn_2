@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { getDashboardPath, type Role } from '@/lib/auth';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -24,20 +25,9 @@ export default function Login() {
       const data = await res.json();
 
       if (res.ok) {
-        // Store user data in localStorage for UI display
-        localStorage.setItem('user', JSON.stringify(data.user));
-
-        // Redirect based on role
-        const role = data.user.role;
-        if (role === 'Student') {
-          router.push('/dashboard/student');
-        } else if (role === 'Instructor') {
-          router.push('/dashboard/instructor');
-        } else if (role === 'Administrator') {
-          router.push('/dashboard/admin');
-        } else {
-          router.push('/dashboard');
-        }
+        // Redirect based on role (session stored in secure httpOnly cookie)
+        const role = data.user.role as Role;
+        router.push(getDashboardPath(role));
       } else {
         setError(data.message || 'Invalid credentials');
       }
