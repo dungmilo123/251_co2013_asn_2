@@ -1,39 +1,13 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
-
-// Types
-export type Role = 'Student' | 'Instructor' | 'Administrator';
-
-export interface SessionUser {
-  userId: number;
-  username: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: Role;
-  studentCode?: string;
-  instructorCode?: string;
-  adminCode?: string;
-}
-
-interface TokenPayload {
-  userId: number;
-  username: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: Role;
-  studentCode?: string;
-  instructorCode?: string;
-  adminCode?: string;
-}
+import { SessionUser, TokenPayload, Role } from './definitions';
 
 // Secret key for JWT signing (in production, use environment variable)
 const SECRET_KEY = new TextEncoder().encode(
   process.env.JWT_SECRET || 'your-secret-key-change-in-production-min-32-chars'
 );
 
-const COOKIE_NAME = 'lms_session';
+export const COOKIE_NAME = 'lms_session';
 const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
@@ -56,14 +30,14 @@ async function createToken(payload: TokenPayload): Promise<string> {
 /**
  * Verify and decode JWT token
  */
-async function verifyToken(token: string): Promise<TokenPayload | null> {
-  try {
-    const { payload } = await jwtVerify(token, SECRET_KEY);
-    return payload as TokenPayload;
-  } catch (error) {
-    return null;
-  }
-}
+ export async function verifyToken(token: string): Promise<TokenPayload | null> {
+   try {
+     const { payload } = await jwtVerify(token, SECRET_KEY);
+     return payload as TokenPayload;
+   } catch (error) {
+     return null;
+   }
+ }
 
 /**
  * Set session cookie with user data
@@ -90,32 +64,13 @@ export async function setSession(user: SessionUser): Promise<void> {
 /**
  * Get current session from cookie
  */
-export async function getSession(): Promise<SessionUser | null> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(COOKIE_NAME);
-
-  if (!token) {
-    return null;
-  }
-
-  const payload = await verifyToken(token.value);
-
-  if (!payload) {
-    return null;
-  }
-
-  return {
-    userId: payload.userId,
-    username: payload.username,
-    email: payload.email,
-    firstName: payload.firstName,
-    lastName: payload.lastName,
-    role: payload.role,
-    studentCode: payload.studentCode,
-    instructorCode: payload.instructorCode,
-    adminCode: payload.adminCode,
-  };
-}
+ export async function getSession(): Promise<SessionUser | null> {
+   const cookieStore = await cookies();
+   const token = cookieStore.get(COOKIE_NAME);
+ 
+   if (!token) return null;
+   return await verifyToken(token.value);
+ }
 
 /**
  * Clear session cookie (logout)

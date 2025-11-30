@@ -1,7 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getDashboardPath, type Role } from '@/lib/auth';
+import { getDashboardPath } from '@/lib/utils';
+import { type Role } from '@/lib/definitions';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -157,7 +158,7 @@ export default function Login() {
               </h2>
               <p className="text-lg leading-relaxed" style={{ color: '#e6f0f5', maxWidth: '480px' }}>
                 Access your courses, assignments, and resources in one unified platform.
-                Built for students and educators at Ho Chi Minh University of Technology.
+                Built for students and educators at Ho Chi Minh City University of Technology.
               </p>
             </div>
 
