@@ -32,7 +32,7 @@ export default function InstructorDashboard() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
   const [roster, setRoster] = useState<Student[]>([]);
-  const [courseInfo, setCourseInfo] = useState<any>(null);
+  const [courseInfo, setCourseInfo] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingRoster, setLoadingRoster] = useState(false);
 

@@ -9,7 +9,7 @@ export async function GET() {
     await requireAdministrator();
 
     // Get all users with their role information
-    const users: any = await query({
+    const users = await query({
       query: `
         SELECT
           user_id,
@@ -28,7 +28,7 @@ export async function GET() {
     });
 
     return NextResponse.json(users);
-  } catch (error: any) {
+  } catch (error: unknown) {
     return handleApiError(error, 'fetch users');
   }
 }

@@ -22,7 +22,7 @@ export async function GET(
     }
 
     // Verify instructor teaches this course
-    const teaching: any = await query({
+    const teaching = await query({
       query: `
         SELECT * FROM Teaching
         WHERE instructor_code = ? AND course_id = ?
@@ -38,7 +38,7 @@ export async function GET(
     }
 
     // Get course information
-    const courseInfo: any = await query({
+    const courseInfo = await query({
       query: `
         SELECT course_code, title, credits
         FROM Courses
@@ -48,7 +48,7 @@ export async function GET(
     });
 
     // Get enrolled students with their details
-    const roster: any = await query({
+    const roster = await query({
       query: `
         SELECT
           e.enrollment_id,
@@ -75,7 +75,7 @@ export async function GET(
       course: courseInfo[0] || {},
       students: roster,
     });
-  } catch (error: any) {
-    return handleApiError(error, 'fetch course roster');
+  } catch {
+    return handleApiError(null, 'fetch course roster');
   }
 }

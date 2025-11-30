@@ -19,7 +19,7 @@ export async function GET(
             query({ query: "SELECT m.* FROM Materials m JOIN Sections s ON m.section_id = s.section_id WHERE s.course_id = ?", values: [id] }),
             query({ query: "SELECT * FROM Assignments WHERE course_id = ?", values: [id] }),
             query({ query: "SELECT * FROM Quizzes WHERE course_id = ?", values: [id] })
-        ]) as [any[], any[], any[], any[], any[]];
+        ]) as [unknown[], unknown[], unknown[], unknown[], unknown[]];
 
         if (courses.length === 0) {
             return NextResponse.json({ error: "Course not found" }, { status: 404 });
@@ -45,7 +45,7 @@ export async function GET(
 
         return NextResponse.json(fullCourse);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         return handleApiError(error, 'fetch course details');
     }
 }
@@ -64,7 +64,7 @@ export async function DELETE(
             values: [id],
         });
         return NextResponse.json({ message: "Deleted" });
-    } catch (error: any) {
+    } catch (error: unknown) {
         return handleApiError(error, 'delete course');
     }
 }

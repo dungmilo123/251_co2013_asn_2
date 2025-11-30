@@ -6,9 +6,9 @@ import { NextResponse } from 'next/server';
  * @param operation - Description of the operation that failed (e.g., 'fetch courses')
  * @returns NextResponse with appropriate error message and status code
  */
-export function handleApiError(error: any, operation: string): NextResponse {
+export function handleApiError(error: unknown, operation: string): NextResponse {
   // Handle authentication/authorization errors
-  if (error.message === 'Unauthorized' || error.message === 'Forbidden') {
+  if (error instanceof Error && (error.message === 'Unauthorized' || error.message === 'Forbidden')) {
     return NextResponse.json({ error: error.message }, { status: 403 });
   }
 

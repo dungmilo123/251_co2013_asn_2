@@ -23,7 +23,7 @@ export async function GET() {
       instructorCode: session.instructorCode,
       adminCode: session.adminCode,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to get user session' },
       { status: 500 }

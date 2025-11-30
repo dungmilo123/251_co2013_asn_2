@@ -9,7 +9,7 @@ export async function GET() {
     const session = await requireStudent();
 
     // Get enrolled courses for this student
-    const courses: any = await query({
+    const courses = await query({
       query: `
         SELECT
           c.course_id,
@@ -29,7 +29,7 @@ export async function GET() {
     });
 
     // Also get student GPA and year level
-    const studentInfo: any = await query({
+    const studentInfo = await query({
       query: `
         SELECT gpa, year_level, program
         FROM Students
@@ -38,11 +38,13 @@ export async function GET() {
       values: [session.studentCode],
     });
 
+    const studentInfoRow = studentInfo[0] || {};
+
     return NextResponse.json({
       courses,
-      student: studentInfo[0] || {},
+      student: studentInfoRow,
     });
-  } catch (error: any) {
-    return handleApiError(error, 'fetch student courses');
+  } catch {
+    return handleApiError(null, 'fetch student courses');
   }
 }

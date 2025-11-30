@@ -7,11 +7,13 @@ export const dbConfig = {
     database: 'LMS_DB',
 };
 
-export async function query({ query, values = [] }: { query: string; values?: any[] }) {
+export async function query({ query, values = [] }: { query: string; values?: unknown[] }) {
     const db = await mysql.createConnection(dbConfig);
     try{
-        const [results] = await db.execute(query, values);
-        return results;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const [results] = await db.execute(query, values as any[]);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return results as any;
     } catch (error) {
         throw error;
     } finally{

@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     }
 
     // Check if already enrolled
-    const existing: any = await query({
+    const existing = await query({
       query: 'SELECT * FROM Enrollments WHERE student_code = ? AND course_id = ?',
       values: [session.studentCode, courseId],
     });
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     }
 
     // Check course capacity
-    const courseInfo: any = await query({
+    const courseInfo = await query({
       query: `
         SELECT c.max_capacity, COUNT(e.enrollment_id) as enrolled_count
         FROM Courses c
@@ -49,7 +49,8 @@ export async function POST(request: Request) {
       );
     }
 
-    if (courseInfo[0].enrolled_count >= courseInfo[0].max_capacity) {
+    const courseInfoRow = courseInfo[0];
+    if (courseInfoRow.enrolled_count >= courseInfoRow.max_capacity) {
       return NextResponse.json(
         { error: 'Course is full' },
         { status: 400 }
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
     }
 
     // Check prerequisites
-    const prereqs: any = await query({
+    const prereqs = await query({
       query: `
         SELECT prerequisite_id, min_grade
         FROM Prerequisites
@@ -67,7 +68,7 @@ export async function POST(request: Request) {
     });
 
     for (const prereq of prereqs) {
-      const studentGrade: any = await query({
+      const studentGrade = await query({
         query: `
           SELECT final_grade, completion_status
           FROM Enrollments
@@ -76,10 +77,12 @@ export async function POST(request: Request) {
         values: [session.studentCode, prereq.prerequisite_id],
       });
 
+      const gradeRow = studentGrade[0];
+
       if (
         studentGrade.length === 0 ||
-        studentGrade[0].completion_status !== 'Completed' ||
-        (studentGrade[0].final_grade || 0) < (prereq.min_grade || 5.0)
+        gradeRow.completion_status !== 'Completed' ||
+        (gradeRow.final_grade || 0) < (prereq.min_grade || 5.0)
       ) {
         return NextResponse.json(
           { error: 'Prerequisites not met' },
@@ -100,7 +103,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       message: 'Successfully enrolled in course',
     });
-  } catch (error: any) {
-    return handleApiError(error, 'enroll in course');
+  } catch {
+    return handleApiError(null, 'enroll in course');
   }
 }

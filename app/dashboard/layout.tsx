@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
     LogOut,
     User,
@@ -9,6 +10,7 @@ import {
     Settings,
     TrendingUp,
 } from "lucide-react";
+import { SessionUser } from "@/lib/definitions";
 
 export default function DashboardLayout({
     children,
@@ -16,7 +18,7 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     const router = useRouter();
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<SessionUser | null>(null);
 
     useEffect(() => {
         // Fetch user data from secure session
@@ -161,11 +163,12 @@ export default function DashboardLayout({
                         <div className="flex justify-between items-center h-20">
                             {/* Logo and Brand */}
                             <Link href={getDashboardLink()} className="flex items-center gap-4 cursor-pointer group">
-                                <div className="relative">
-                                    <img
+                                <div className="relative w-12 h-12">
+                                    <Image
                                         src="/01_logobachkhoatoi.png"
                                         alt="HCMUT Logo"
-                                        className="w-12 h-12 object-contain"
+                                        fill
+                                        className="object-contain"
                                     />
                                     <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
                                 </div>

@@ -39,12 +39,19 @@ interface AvailableCourse extends Course {
     isFull?: boolean;
 }
 
+interface Student {
+    student_code: string;
+    gpa: number;
+    year_level: number;
+    program: string;
+}
+
 export default function StudentDashboard() {
     const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
     const [availableCourses, setAvailableCourses] = useState<AvailableCourse[]>(
         [],
     );
-    const [student, setStudent] = useState<any>(null);
+    const [student, setStudent] = useState<Student | null>(null);
     const [loading, setLoading] = useState(true);
     const [enrolling, setEnrolling] = useState(false);
     const [message, setMessage] = useState<{
@@ -107,7 +114,7 @@ export default function StudentDashboard() {
                     text: data.error || "Failed to enroll",
                 });
             }
-        } catch (error) {
+        } catch {
             setMessage({
                 type: "error",
                 text: "Connection error. Please try again.",

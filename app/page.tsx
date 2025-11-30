@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { getDashboardPath } from '@/lib/utils';
 import { type Role } from '@/lib/definitions';
 
@@ -32,7 +33,7 @@ export default function Login() {
       } else {
         setError(data.message || 'Invalid credentials');
       }
-    } catch (err) {
+    } catch {
       setError('Connection error. Please try again.');
     } finally {
       setLoading(false);
@@ -143,7 +144,9 @@ export default function Login() {
             {/* Logo and Title */}
             <div className="animate-slide-in-left" style={{ animationDelay: '0.1s', opacity: 0 }}>
               <div className="flex items-center gap-3 mb-6">
-                <img src="/01_logobachkhoatoi.png" alt="Logo" className="w-14 h-14 object-contain" />
+                <div className="relative w-14 h-14">
+                  <Image src="/01_logobachkhoatoi.png" alt="Logo" fill className="object-contain" />
+                </div>
                 <div>
                   <h1 className="text-2xl font-bold text-white tracking-tight">Learning Hub</h1>
                 </div>
@@ -182,7 +185,9 @@ export default function Login() {
             {/* Mobile Logo */}
             <div className="lg:hidden mb-8 text-center">
               <div className="inline-flex items-center gap-2 mb-2">
-                <img src="/01_logobachkhoatoi.png" alt="Logo" className="w-10 h-10 object-contain" />
+                <div className="relative w-10 h-10">
+                  <Image src="/01_logobachkhoatoi.png" alt="Logo" fill className="object-contain" />
+                </div>
                 <h1 className="text-xl font-bold" style={{ color: '#00558d' }}>Learning Hub</h1>
               </div>
             </div>

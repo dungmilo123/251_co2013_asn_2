@@ -1,6 +1,6 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { Settings, Plus, Trash2, Users as UsersIcon, BarChart3, TrendingUp, BookOpen, Shield, Database } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { Settings, Plus, Trash2, Users as UsersIcon, BarChart3, TrendingUp, BookOpen, Database } from 'lucide-react';
 
 interface Course {
   course_id: number;
@@ -21,25 +21,41 @@ interface User {
   last_login?: string;
 }
 
+interface CourseStat {
+  course_code: string;
+  total_enrolled: number;
+  avg_grade: number | null;
+}
+
 export default function AdminDashboard() {
   const [courses, setCourses] = useState<Course[]>([]);
-  const [stats, setStats] = useState<any[]>([]);
+  const [stats, setStats] = useState<CourseStat[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState('');
   const [newCourse, setNewCourse] = useState({ code: '', title: '', credits: 3 });
   const [loadingStats, setLoadingStats] = useState(false);
 
-  useEffect(() => {
-    fetchCourses();
-    fetchUsers();
-  }, [search]);
-
-  const fetchCourses = async () => {
+  const fetchCourses = useCallback(async () => {
     const res = await fetch(`/api/courses?search=${search}`);
     if (res.ok) {
       setCourses(await res.json());
     }
-  };
+  }, [search]);
+
+  const fetchUsers = useCallback(async () => {
+    const res = await fetch('/api/admin/users');
+    if (res.ok) {
+      setUsers(await res.json());
+    }
+  }, []);
+
+  useEffect(() => {
+    const init = async () => {
+      await fetchCourses();
+      await fetchUsers();
+    };
+    init();
+  }, [fetchCourses, fetchUsers]);
 
   const fetchStats = async () => {
     setLoadingStats(true);
@@ -48,13 +64,6 @@ export default function AdminDashboard() {
       setStats(await res.json());
     }
     setLoadingStats(false);
-  };
-
-  const fetchUsers = async () => {
-    const res = await fetch('/api/admin/users');
-    if (res.ok) {
-      setUsers(await res.json());
-    }
   };
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -400,7 +409,7 @@ export default function AdminDashboard() {
                     <BarChart3 className="w-8 h-8 text-white/60" />
                   </div>
                   <p className="text-white/80 text-lg font-medium">No statistics loaded</p>
-                  <p className="text-white/60 text-sm mt-2">Click "Load Stats" to view analytics</p>
+                  <p className="text-white/60 text-sm mt-2">Click &quot;Load Stats&quot; to view analytics</p>
                 </div>
               ) : (
                 <div className="space-y-3">

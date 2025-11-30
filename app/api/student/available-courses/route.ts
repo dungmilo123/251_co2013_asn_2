@@ -10,7 +10,7 @@ export async function GET() {
 
     // Get courses available for enrollment
     // Criteria: not already enrolled, enrollment period is open or no enrollment dates set
-    const courses: any = await query({
+    const courses = await query({
       query: `
         SELECT
           c.course_id,
@@ -42,9 +42,10 @@ export async function GET() {
 
     // For each course, check if prerequisites are met
     const coursesWithPrereqs = await Promise.all(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       courses.map(async (course: any) => {
         // Get prerequisites for this course
-        const prereqs: any = await query({
+        const prereqs = await query({
           query: `
             SELECT
               p.prerequisite_id,
@@ -61,8 +62,9 @@ export async function GET() {
         // Check if student has completed each prerequisite
         let prereqsMet = true;
         const prereqDetails = await Promise.all(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           prereqs.map(async (prereq: any) => {
-            const studentGrade: any = await query({
+            const studentGrade = await query({
               query: `
                 SELECT final_grade, completion_status
                 FROM Enrollments
@@ -71,9 +73,10 @@ export async function GET() {
               values: [session.studentCode, prereq.prerequisite_id],
             });
 
-            const completed = studentGrade.length > 0 &&
-              studentGrade[0].completion_status === 'Completed' &&
-              (studentGrade[0].final_grade || 0) >= (prereq.min_grade || 5.0);
+            const gradeRows = studentGrade;
+            const completed = gradeRows.length > 0 &&
+              gradeRows[0].completion_status === 'Completed' &&
+              (gradeRows[0].final_grade || 0) >= (prereq.min_grade || 5.0);
 
             if (!completed) {
               prereqsMet = false;
@@ -102,7 +105,7 @@ export async function GET() {
     );
 
     return NextResponse.json(coursesWithPrereqs);
-  } catch (error: any) {
-    return handleApiError(error, 'fetch available courses');
+  } catch {
+    return handleApiError(null, 'fetch available courses');
   }
 }

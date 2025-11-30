@@ -18,7 +18,7 @@ export async function GET(
       values: [studentCode, courseId],
     });
 
-    if ((enrollment as any[]).length === 0) {
+    if ((enrollment as unknown[]).length === 0) {
       return NextResponse.json({ error: 'Not enrolled in this course' }, { status: 403 });
     }
 
@@ -34,10 +34,11 @@ export async function GET(
       values: [assignmentId, courseId],
     });
 
-    if ((assignments as any[]).length === 0) {
+    if ((assignments as unknown[]).length === 0) {
       return NextResponse.json({ error: 'Assignment not found' }, { status: 404 });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const assignment = (assignments as any[])[0];
 
     // 3. Fetch Submission Status
@@ -51,14 +52,15 @@ export async function GET(
       values: [assignmentId, studentCode],
     });
 
-    const submission = (submissions as any[]).length > 0 ? (submissions as any[])[0] : null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const submission = (submissions as unknown[]).length > 0 ? (submissions as any[])[0] : null;
 
     return NextResponse.json({
       assignment,
       submission,
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     return handleApiError(error, 'fetching assignment details');
   }
 }

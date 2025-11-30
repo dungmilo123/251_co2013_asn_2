@@ -22,7 +22,7 @@ export default function Unauthorized() {
 
         {/* Message */}
         <p className="text-gray-600 mb-8">
-          You don't have permission to access this page. Please contact your
+          You don&apos;t have permission to access this page. Please contact your
           administrator if you believe this is an error.
         </p>
 

@@ -20,7 +20,7 @@ const COOKIE_OPTIONS = {
  * Create JWT token from user data
  */
 async function createToken(payload: TokenPayload): Promise<string> {
-  return await new SignJWT(payload as any)
+  return await new SignJWT(payload as unknown as import('jose').JWTPayload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('7d')
@@ -34,7 +34,7 @@ async function createToken(payload: TokenPayload): Promise<string> {
    try {
      const { payload } = await jwtVerify(token, SECRET_KEY);
      return payload as unknown as TokenPayload;
-   } catch (error) {
+   } catch {
      return null;
    }
  }

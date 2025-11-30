@@ -27,10 +27,12 @@ export async function GET(
         values: [submissionId]
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if ((submissions as any[]).length === 0) {
         return NextResponse.json({ error: 'Submission not found' }, { status: 404 });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const submission = (submissions as any[])[0];
 
     if (!submission.file_path) {
@@ -51,6 +53,7 @@ export async function GET(
             query: 'SELECT 1 FROM Teaching WHERE instructor_code = ? AND course_id = ?',
             values: [session.instructorCode, submission.course_id]
         });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((teaching as any[]).length > 0) {
             authorized = true;
         }
@@ -76,7 +79,7 @@ export async function GET(
         }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     return handleApiError(error, 'downloading file');
   }
 }

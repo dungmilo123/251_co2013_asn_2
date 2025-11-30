@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -17,7 +16,6 @@ import { Assignment, Submission } from "@/lib/definitions";
 
 export default function AssignmentPage({ params }: { params: Promise<{ courseId: string; assignmentId: string }> }) {
   const { courseId, assignmentId } = use(params);
-  const router = useRouter();
   
   const [assignment, setAssignment] = useState<Assignment | null>(null);
   const [submission, setSubmission] = useState<Submission | null>(null);
@@ -28,28 +26,28 @@ export default function AssignmentPage({ params }: { params: Promise<{ courseId:
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
+    const fetchData = async () => {
+        try {
+          const res = await fetch(`/api/student/courses/${courseId}/assignments/${assignmentId}`);
+          if (!res.ok) {
+              if (res.status === 403) setError("Not enrolled in this course.");
+              else if (res.status === 404) setError("Assignment not found.");
+              else setError("Failed to load assignment.");
+              setLoading(false);
+              return;
+          }
+          const data = await res.json();
+          setAssignment(data.assignment);
+          setSubmission(data.submission);
+        } catch {
+          setError("Network error.");
+        } finally {
+          setLoading(false);
+        }
+      };
+
     fetchData();
   }, [courseId, assignmentId]);
-
-  const fetchData = async () => {
-    try {
-      const res = await fetch(`/api/student/courses/${courseId}/assignments/${assignmentId}`);
-      if (!res.ok) {
-          if (res.status === 403) setError("Not enrolled in this course.");
-          else if (res.status === 404) setError("Assignment not found.");
-          else setError("Failed to load assignment.");
-          setLoading(false);
-          return;
-      }
-      const data = await res.json();
-      setAssignment(data.assignment);
-      setSubmission(data.submission);
-    } catch (err) {
-      setError("Network error.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -78,11 +76,17 @@ export default function AssignmentPage({ params }: { params: Promise<{ courseId:
         if (res.ok) {
             setSuccess("Assignment submitted successfully!");
             setSelectedFile(null);
-            fetchData(); // Refresh status
+            // Reload data
+            const refreshRes = await fetch(`/api/student/courses/${courseId}/assignments/${assignmentId}`);
+            if (refreshRes.ok) {
+                const refreshData = await refreshRes.json();
+                setAssignment(refreshData.assignment);
+                setSubmission(refreshData.submission);
+            }
         } else {
             setError(data.error || "Submission failed.");
         }
-    } catch (err) {
+    } catch {
         setError("Submission failed due to network error.");
     } finally {
         setSubmitting(false);

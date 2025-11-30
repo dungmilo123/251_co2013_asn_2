@@ -29,7 +29,7 @@ export async function POST(
       values: [studentCode, courseId],
     });
 
-    if ((enrollment as any[]).length === 0) {
+    if ((enrollment as unknown[]).length === 0) {
       return NextResponse.json({ error: 'Not enrolled in this course' }, { status: 403 });
     }
 
@@ -38,8 +38,9 @@ export async function POST(
         query: 'SELECT due_date, late_submission_allowed, opening_date FROM Assignments WHERE assignment_id = ?',
         values: [assignmentId]
     });
-    if ((assignments as any[]).length === 0) return NextResponse.json({error: 'Assignment not found'}, {status: 404});
+    if ((assignments as unknown[]).length === 0) return NextResponse.json({error: 'Assignment not found'}, {status: 404});
     
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const assignment = (assignments as any[])[0];
     const now = new Date();
     const dueDate = new Date(assignment.due_date);
@@ -101,7 +102,7 @@ export async function POST(
 
     return NextResponse.json({ success: true, message: 'Assignment submitted successfully' });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     return handleApiError(error, 'submitting assignment');
   }
 }

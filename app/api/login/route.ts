@@ -16,7 +16,7 @@ export async function POST(request: Request) {
         }
 
         // Query user from database
-        const users: any = await query({
+        const users = await query({
             query: 'SELECT user_id, username, email, first_name, last_name, role, status, password_hash FROM Users WHERE username = ?',
             values: [username],
         });
@@ -65,19 +65,19 @@ export async function POST(request: Request) {
         let adminCode: string | undefined;
 
         if (user.role === 'Student') {
-            const students: any = await query({
+            const students = await query({
                 query: 'SELECT student_code FROM Students WHERE user_id = ?',
                 values: [user.user_id],
             });
             studentCode = students[0]?.student_code;
         } else if (user.role === 'Instructor') {
-            const instructors: any = await query({
+            const instructors = await query({
                 query: 'SELECT instructor_code FROM Instructors WHERE user_id = ?',
                 values: [user.user_id],
             });
             instructorCode = instructors[0]?.instructor_code;
         } else if (user.role === 'Administrator') {
-            const admins: any = await query({
+            const admins = await query({
                 query: 'SELECT admin_code FROM Administrators WHERE user_id = ?',
                 values: [user.user_id],
             });

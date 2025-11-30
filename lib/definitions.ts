@@ -12,7 +12,7 @@ export interface SessionUser {
   adminCode?: string;
 }
 
-export interface TokenPayload extends SessionUser {}
+export type TokenPayload = SessionUser;
 
 export interface Material {
   material_id: number;

@@ -5,7 +5,7 @@ export async function POST() {
   try {
     await clearSession();
     return NextResponse.json({ message: 'Logged out successfully' });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: 'Logout failed' },
       { status: 500 }

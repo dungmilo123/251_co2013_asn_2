@@ -35,8 +35,8 @@ export default function CoursePage({ params }: { params: Promise<{ id: string }>
                 if (data.sections && data.sections.length > 0) {
                     setActiveSection(data.sections[0].section_id);
                 }
-            } catch (err: any) {
-                setError(err.message);
+            } catch (err: unknown) {
+                setError(err instanceof Error ? err.message : "Failed to fetch course");
             } finally {
                 setLoading(false);
             }

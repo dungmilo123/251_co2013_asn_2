@@ -9,7 +9,7 @@ export async function GET() {
     const session = await requireInstructor();
 
     // Get courses taught by this instructor
-    const courses: any = await query({
+    const courses = await query({
       query: `
         SELECT
           c.course_id,
@@ -31,7 +31,7 @@ export async function GET() {
     });
 
     return NextResponse.json(courses);
-  } catch (error: any) {
+  } catch (error: unknown) {
     return handleApiError(error, 'fetch instructor courses');
   }
 }

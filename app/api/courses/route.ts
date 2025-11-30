@@ -12,7 +12,7 @@ export async function GET(request : Request){
         const search = searchParams.get('search');
 
         let sql = 'SELECT * FROM Courses';
-        let values: any[] = [];
+        let values: unknown[] = [];
 
         if (search){
             sql += ' WHERE title LIKE ?';
@@ -21,7 +21,7 @@ export async function GET(request : Request){
 
         const courses = await query({ query: sql, values });
         return NextResponse.json(courses);
-    } catch (error: any) {
+    } catch (error: unknown) {
         return handleApiError(error, 'fetch courses');
     }
 }
@@ -38,7 +38,7 @@ export async function POST(request: Request){
             values: [code, title, credits],
         });
         return NextResponse.json({ message: 'Course created' });
-    } catch (error: any) {
+    } catch (error: unknown) {
         return handleApiError(error, 'create course');
     }
 }
