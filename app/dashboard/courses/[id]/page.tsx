@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, use } from "react";
 import { Course } from "@/lib/definitions";
+import Link from "next/link";
 import {
     BookOpen,
     FileText,
@@ -188,7 +189,11 @@ export default function CoursePage({ params }: { params: Promise<{ id: string }>
                                 <p className="text-gray-500 text-sm">No assignments due.</p>
                             ) : (
                                 course.assignments.map((assign) => (
-                                    <div key={assign.assignment_id} className="p-4 rounded-xl bg-gray-50 border border-gray-200 hover:border-green-200 hover:bg-green-50/30 transition-all">
+                                    <Link 
+                                        href={`/dashboard/student/courses/${id}/assignments/${assign.assignment_id}`}
+                                        key={assign.assignment_id} 
+                                        className="block p-4 rounded-xl bg-gray-50 border border-gray-200 hover:border-green-200 hover:bg-green-50/30 transition-all"
+                                    >
                                         <div className="flex justify-between items-start mb-2">
                                             <h4 className="font-bold text-gray-800">{assign.title}</h4>
                                             <span className="text-xs font-bold px-2 py-1 rounded-full bg-white border border-gray-200 text-gray-600">
@@ -199,7 +204,7 @@ export default function CoursePage({ params }: { params: Promise<{ id: string }>
                                             <Clock className="w-3 h-3" />
                                             <span>Due: {new Date(assign.due_date).toLocaleDateString()}</span>
                                         </div>
-                                    </div>
+                                    </Link>
                                 ))
                             )}
                         </div>

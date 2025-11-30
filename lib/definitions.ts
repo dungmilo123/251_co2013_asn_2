@@ -51,6 +51,19 @@ export interface Assignment {
   late_penalty: number;
 }
 
+export interface Submission {
+  submission_id: number;
+  assignment_id: number;
+  student_code: string;
+  date: string;
+  content: string | null;
+  file_path: string | null;
+  file_name: string | null;
+  score: number | null;
+  status: string;
+  is_late: boolean;
+}
+
 export interface Quiz {
   quiz_id: number;
   course_id: number;
