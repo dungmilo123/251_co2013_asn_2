@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, use } from "react";
-import { Course } from "@/lib/definitions";
+import { Course, Quiz } from "@/lib/definitions";
 import Link from "next/link";
 import {
     BookOpen,
@@ -14,6 +14,90 @@ import {
     Calendar,
     Award
 } from "lucide-react";
+
+function QuizCard({ quiz, courseId }: { quiz: Quiz; courseId: string }) {
+    const [attemptStatus, setAttemptStatus] = useState<{
+        attempts: number;
+        maxAttempts: number;
+        canAttempt: boolean;
+        lastScore?: number;
+    } | null>(null);
+
+    useEffect(() => {
+        const checkQuizStatus = async () => {
+            try {
+                const res = await fetch(`/api/student/courses/${courseId}/quizzes/${quiz.quiz_id}/results`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setAttemptStatus({
+                        attempts: data.attempts.length,
+                        maxAttempts: data.quiz.attemptsAllowed,
+                        canAttempt: data.attempts.length < data.quiz.attemptsAllowed,
+                        lastScore: data.attempts[0]?.total_score
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to check quiz status:', error);
+            }
+        };
+
+        checkQuizStatus();
+    }, [courseId, quiz.quiz_id]);
+
+    const now = new Date();
+    const openTime = new Date(quiz.open_time);
+    const closeTime = new Date(quiz.close_time);
+    const isAvailable = now >= openTime && now <= closeTime;
+
+    return (
+        <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 hover:border-purple-200 hover:bg-purple-50/30 transition-all">
+            <div className="flex justify-between items-start mb-2">
+                <h4 className="font-bold text-gray-800">{quiz.title}</h4>
+                {attemptStatus && (
+                    <span className="text-xs font-bold px-2 py-1 rounded-full bg-white border border-gray-200 text-gray-600">
+                        {attemptStatus.attempts}/{attemptStatus.maxAttempts} attempts
+                    </span>
+                )}
+            </div>
+
+            <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+                <span>{quiz.time_limit_minutes} mins</span>
+                <span>Closes: {new Date(quiz.close_time).toLocaleDateString()}</span>
+            </div>
+
+            {attemptStatus?.lastScore !== undefined && typeof attemptStatus.lastScore === 'number' && (
+                <div className="text-sm text-green-600 mb-2">
+                    Last Score: {attemptStatus.lastScore.toFixed(1)}
+                </div>
+            )}
+
+            <div className="flex gap-2">
+                {isAvailable && attemptStatus?.canAttempt ? (
+                    <Link
+                        href={`/dashboard/student/courses/${courseId}/quizzes/${quiz.quiz_id}`}
+                        className="flex-1 bg-purple-600 text-white px-3 py-2 rounded-lg text-center hover:bg-purple-700 transition-colors text-sm font-medium"
+                    >
+                        Start Quiz
+                    </Link>
+                ) : (
+                    <button
+                        disabled
+                        className="flex-1 bg-gray-300 text-gray-500 px-3 py-2 rounded-lg text-center text-sm font-medium cursor-not-allowed"
+                    >
+                        {isAvailable ? 'No Attempts Left' : 'Not Available'}
+                    </button>
+                )}
+
+                <Link
+                    href={`/dashboard/student/courses/${courseId}/quizzes/${quiz.quiz_id}/results`}
+                    className="flex-1 bg-gray-600 text-white px-3 py-2 rounded-lg text-center hover:bg-gray-700 transition-colors text-sm font-medium"
+                >
+                    View Results
+                </Link>
+            </div>
+        </div>
+    );
+}
 
 export default function CoursePage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -221,13 +305,7 @@ export default function CoursePage({ params }: { params: Promise<{ id: string }>
                                 <p className="text-gray-500 text-sm">No active quizzes.</p>
                             ) : (
                                 course.quizzes.map((quiz) => (
-                                    <div key={quiz.quiz_id} className="p-4 rounded-xl bg-gray-50 border border-gray-200 hover:border-purple-200 hover:bg-purple-50/30 transition-all">
-                                        <h4 className="font-bold text-gray-800 mb-2">{quiz.title}</h4>
-                                        <div className="flex items-center justify-between text-xs text-gray-500">
-                                            <span>{quiz.time_limit_minutes} mins</span>
-                                            <span>{new Date(quiz.close_time).toLocaleDateString()}</span>
-                                        </div>
-                                    </div>
+                                    <QuizCard key={quiz.quiz_id} quiz={quiz} courseId={id} />
                                 ))
                             )}
                         </div>

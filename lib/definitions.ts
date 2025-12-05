@@ -75,6 +75,50 @@ export interface Quiz {
   attempts_allowed: number;
   grading_method: string;
   passing_score: number;
+  shuffle_questions?: boolean;
+  shuffle_answers?: boolean;
+  total_points?: number;
+}
+
+export interface Question {
+  question_id: number;
+  quiz_id: number;
+  question_text: string;
+  question_type: 'MultipleChoice' | 'TrueFalse' | 'ShortAnswer';
+  points: number;
+  correct_answer?: string;
+  choices?: QuestionChoice[];
+}
+
+export interface QuestionChoice {
+  choice_id: number;
+  question_id: number;
+  choice_text: string;
+  is_correct: boolean;
+}
+
+export interface QuizAttempt {
+  attempt_id: number;
+  quiz_id: number;
+  student_code: string;
+  attempt_number: number;
+  start_time: string;
+  completion_time?: string;
+  duration?: number;
+  total_score: number;
+  status: string;
+}
+
+export interface QuizAnswer {
+  answer_id: number;
+  attempt_id: number;
+  question_id: number;
+  selected_choice_id?: number;
+  text_answer?: string;
+  is_correct: boolean;
+  points_earned: number;
+  time_taken?: number;
+  answered_at: string;
 }
 
 export interface Course {
