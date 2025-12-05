@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { Settings, Plus, Trash2, Users as UsersIcon, BarChart3, TrendingUp, BookOpen, Database } from 'lucide-react';
+import { Settings, Trash2, Users as UsersIcon, BarChart3, TrendingUp, BookOpen, Database } from 'lucide-react';
+import { CourseForm } from '@/components/admin/CourseForm';
 
 interface Course {
   course_id: number;
@@ -32,7 +33,6 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<CourseStat[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState('');
-  const [newCourse, setNewCourse] = useState({ code: '', title: '', credits: 3 });
   const [loadingStats, setLoadingStats] = useState(false);
 
   const fetchCourses = useCallback(async () => {
@@ -66,19 +66,7 @@ export default function AdminDashboard() {
     setLoadingStats(false);
   };
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const res = await fetch('/api/courses', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newCourse),
-    });
-    if (res.ok) {
-      setNewCourse({ code: '', title: '', credits: 3 });
-      fetchCourses();
-    }
-  };
-
+  
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this course?')) return;
     const res = await fetch(`/api/courses/${id}`, { method: 'DELETE' });
@@ -244,64 +232,15 @@ export default function AdminDashboard() {
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden transform-gpu">
             <div className="px-8 py-6 border-b border-gray-100">
               <h2 className="text-2xl font-bold flex items-center gap-3 text-black">
-                <Plus className="w-6 h-6" />
+                <Settings className="w-6 h-6" />
                 Course Management
               </h2>
               <p className="mt-2 text-black">
-                Create new courses and manage the academic curriculum
+                Create new courses with comprehensive details and manage the academic curriculum
               </p>
             </div>
             <div className="p-8">
-              <form onSubmit={handleCreate} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="course-management-card rounded-xl p-4 border border-gray-200">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Course Code
-                    </label>
-                    <input
-                      placeholder="e.g., CO2013"
-                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 font-mono placeholder:text-gray-600/50 text-black"
-                      value={newCourse.code}
-                      onChange={(e) => setNewCourse({ ...newCourse, code: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="course-management-card rounded-xl p-4 border border-gray-200">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Course Title
-                    </label>
-                    <input
-                      placeholder="Full course title"
-                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 placeholder:text-gray-600/50 text-black"
-                      value={newCourse.title}
-                      onChange={(e) => setNewCourse({ ...newCourse, title: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="course-management-card rounded-xl p-4 border border-gray-200">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Credits
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="Credit hours"
-                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 placeholder:text-gray-600/50 text-black"
-                      value={newCourse.credits}
-                      onChange={(e) => setNewCourse({ ...newCourse, credits: parseInt(e.target.value) })}
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    className="btn-primary flex items-center gap-3 px-8 py-3 rounded-xl font-semibold text-white shadow-lg"
-                  >
-                    <Plus className="w-5 h-5" />
-                    Add Course
-                  </button>
-                </div>
-              </form>
+              <CourseForm onSuccess={fetchCourses} />
             </div>
           </div>
         </div>
