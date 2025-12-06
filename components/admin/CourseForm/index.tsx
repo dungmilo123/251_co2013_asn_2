@@ -54,7 +54,7 @@ export const CourseForm: React.FC<CourseFormProps> = ({
   mode = 'create'
 }) => {
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const isEditMode = mode === 'edit' && course;
+  const isEditMode = mode === 'edit' && !!course;
 
   const methods = useForm<CourseFormData>({
     resolver: zodResolver(courseFormSchema),
