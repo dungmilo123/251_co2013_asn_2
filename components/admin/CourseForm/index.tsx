@@ -1,8 +1,8 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Loader2 } from 'lucide-react';
+import { Plus, Loader2, Save } from 'lucide-react';
 import { CourseFormData } from '@/types/course';
 import { courseFormSchema } from './validation';
 import { BasicSection } from './BasicSection';
@@ -10,17 +10,69 @@ import { DetailsSection } from './DetailsSection';
 import { ScheduleSection } from './ScheduleSection';
 import { ExpandableSection } from './ExpandableSection';
 
+interface Course {
+  course_id: number;
+  course_code: string;
+  title: string;
+  credits: number;
+  department?: string;
+  academic_level?: string;
+  max_capacity?: number;
+  start_date?: string;
+  end_date?: string;
+  description?: string;
+  enrollment_start_date?: string;
+  enrollment_end_date?: string;
+  status?: string;
+  passing_score?: number;
+}
+
 interface CourseFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
+  course?: Course;
+  mode?: 'create' | 'edit';
 }
 
-export const CourseForm: React.FC<CourseFormProps> = ({ onSuccess, onCancel }) => {
+// Helper to format date string for input fields
+const formatDateForInput = (dateStr?: string | null): string => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return date.toISOString().split('T')[0];
+};
+
+const formatDateTimeForInput = (dateStr?: string | null): string => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return date.toISOString().slice(0, 16);
+};
+
+export const CourseForm: React.FC<CourseFormProps> = ({
+  onSuccess,
+  onCancel,
+  course,
+  mode = 'create'
+}) => {
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const isEditMode = mode === 'edit' && course;
 
   const methods = useForm<CourseFormData>({
     resolver: zodResolver(courseFormSchema),
-    defaultValues: {
+    defaultValues: isEditMode ? {
+      course_code: course.course_code,
+      title: course.title,
+      credits: course.credits,
+      department: course.department || '',
+      academic_level: course.academic_level || '',
+      max_capacity: course.max_capacity || 60,
+      start_date: formatDateForInput(course.start_date),
+      end_date: formatDateForInput(course.end_date),
+      description: course.description || '',
+      enrollment_start_date: formatDateTimeForInput(course.enrollment_start_date),
+      enrollment_end_date: formatDateTimeForInput(course.enrollment_end_date),
+      status: course.status || 'Planned',
+      passing_score: course.passing_score || 5.0
+    } : {
       credits: 3,
       max_capacity: 60,
       status: 'Planned',
@@ -29,6 +81,27 @@ export const CourseForm: React.FC<CourseFormProps> = ({ onSuccess, onCancel }) =
   });
 
   const { handleSubmit, formState: { isSubmitting }, reset } = methods;
+
+  // Reset form when course changes (for edit mode)
+  useEffect(() => {
+    if (isEditMode) {
+      reset({
+        course_code: course.course_code,
+        title: course.title,
+        credits: course.credits,
+        department: course.department || '',
+        academic_level: course.academic_level || '',
+        max_capacity: course.max_capacity || 60,
+        start_date: formatDateForInput(course.start_date),
+        end_date: formatDateForInput(course.end_date),
+        description: course.description || '',
+        enrollment_start_date: formatDateTimeForInput(course.enrollment_start_date),
+        enrollment_end_date: formatDateTimeForInput(course.enrollment_end_date),
+        status: course.status || 'Planned',
+        passing_score: course.passing_score || 5.0
+      });
+    }
+  }, [course, isEditMode, reset]);
 
   const onSubmit = async (data: CourseFormData) => {
     setSubmitError(null);
@@ -42,22 +115,27 @@ export const CourseForm: React.FC<CourseFormProps> = ({ onSuccess, onCancel }) =
         passing_score: data.passing_score ? Number(data.passing_score) : undefined
       };
 
-      const response = await fetch('/api/courses', {
-        method: 'POST',
+      const url = isEditMode ? `/api/courses/${course.course_id}` : '/api/courses';
+      const method = isEditMode ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(submitData)
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Failed to create course');
+        throw new Error(error.message || error.error || `Failed to ${isEditMode ? 'update' : 'create'} course`);
       }
 
-      // Reset form and show success
-      reset();
+      // Reset form only for create mode
+      if (!isEditMode) {
+        reset();
+      }
       onSuccess?.();
     } catch (error: any) {
-      setSubmitError(error.message || 'An error occurred while creating the course');
+      setSubmitError(error.message || `An error occurred while ${isEditMode ? 'updating' : 'creating'} the course`);
       console.error(error);
     }
   };
@@ -76,7 +154,7 @@ export const CourseForm: React.FC<CourseFormProps> = ({ onSuccess, onCancel }) =
         <ExpandableSection
           title="Course Details"
           icon={<Plus className="w-5 h-5" />}
-          defaultExpanded={false}
+          defaultExpanded={isEditMode}
         >
           <DetailsSection />
         </ExpandableSection>
@@ -84,7 +162,7 @@ export const CourseForm: React.FC<CourseFormProps> = ({ onSuccess, onCancel }) =
         <ExpandableSection
           title="Schedule & Status"
           icon={<Plus className="w-5 h-5" />}
-          defaultExpanded={false}
+          defaultExpanded={isEditMode}
         >
           <ScheduleSection />
         </ExpandableSection>
@@ -114,12 +192,12 @@ export const CourseForm: React.FC<CourseFormProps> = ({ onSuccess, onCancel }) =
             {isSubmitting ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                Creating Course...
+                {isEditMode ? 'Updating Course...' : 'Creating Course...'}
               </>
             ) : (
               <>
-                <Plus className="w-5 h-5" />
-                Create Course
+                {isEditMode ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                {isEditMode ? 'Update Course' : 'Create Course'}
               </>
             )}
           </button>
