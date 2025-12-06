@@ -1,3 +1,10 @@
+export interface Prerequisite {
+  prerequisite_id: number;
+  course_code?: string | null;
+  title?: string | null;
+  min_grade?: number | null;
+}
+
 export interface CourseFormData {
   course_code: string;
   title: string;
@@ -12,6 +19,7 @@ export interface CourseFormData {
   enrollment_end_date?: string;
   status?: string;
   passing_score?: number;
+  prerequisites?: Prerequisite[] | null;
 }
 
 export interface CourseFormSection {

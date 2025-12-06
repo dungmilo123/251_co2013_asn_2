@@ -120,15 +120,36 @@ export async function POST(request: Request) {
             values
         });
 
+        const newCourseId = (result as any).insertId;
+
+        // Insert prerequisites if provided
+        if (validatedData.prerequisites && validatedData.prerequisites.length > 0) {
+            for (const prereq of validatedData.prerequisites) {
+                await query({
+                    query: 'INSERT INTO Prerequisites (course_id, prerequisite_id, min_grade) VALUES (?, ?, ?)',
+                    values: [newCourseId, prereq.prerequisite_id, prereq.min_grade ?? 5.0]
+                });
+            }
+        }
+
         // Fetch the created course for response
         const createdCourse = await query({
             query: 'SELECT * FROM Courses WHERE course_id = ?',
-            values: [(result as any).insertId]
+            values: [newCourseId]
+        });
+
+        // Fetch prerequisites for response
+        const prerequisites = await query({
+            query: `SELECT p.prerequisite_id, p.min_grade, c.course_code, c.title 
+                    FROM Prerequisites p 
+                    JOIN Courses c ON p.prerequisite_id = c.course_id 
+                    WHERE p.course_id = ?`,
+            values: [newCourseId]
         });
 
         return NextResponse.json({
             message: 'Course created successfully',
-            course: createdCourse[0]
+            course: { ...(createdCourse[0] as object), prerequisites }
         });
     } catch (error: unknown) {
         // Handle Zod validation errors

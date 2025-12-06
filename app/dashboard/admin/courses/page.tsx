@@ -1,8 +1,15 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { BookOpen, Trash2, ArrowLeft, Plus, Pencil, X, Eye, Calendar, Users, GraduationCap, ChevronUp, ChevronDown, Search, Filter } from 'lucide-react';
+import { BookOpen, Trash2, ArrowLeft, Plus, Pencil, X, Eye, Calendar, Users, GraduationCap, ChevronUp, ChevronDown, Search, Filter, Link2 } from 'lucide-react';
 import Link from 'next/link';
 import { CourseForm } from '@/components/admin/CourseForm';
+
+interface Prerequisite {
+    prerequisite_id: number;
+    course_code: string;
+    title: string;
+    min_grade?: number;
+}
 
 interface Course {
     course_id: number;
@@ -19,18 +26,17 @@ interface Course {
     enrollment_end_date?: string;
     status?: string;
     passing_score?: number;
+    prerequisites?: Prerequisite[];
 }
 
 type SortField = 'start_date' | 'title' | null;
 type SortOrder = 'asc' | 'desc';
 
-// Status filter options
-const STATUSES = ['Planned', 'Active', 'Completed'];
-const ACADEMIC_LEVELS = ['Undergraduate', 'Postgraduate', 'Foundation'];
-
 export default function CourseManagementPage() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [departments, setDepartments] = useState<string[]>([]);
+    const [statuses, setStatuses] = useState<string[]>([]);
+    const [academicLevels, setAcademicLevels] = useState<string[]>([]);
     const [search, setSearch] = useState('');
     const [showForm, setShowForm] = useState(false);
     const [editingCourse, setEditingCourse] = useState<Course | null>(null);
@@ -55,9 +61,29 @@ export default function CourseManagementPage() {
         }
     }, []);
 
+    // Fetch available statuses from the database
+    const fetchStatuses = useCallback(async () => {
+        const res = await fetch('/api/courses/statuses');
+        if (res.ok) {
+            const data = await res.json();
+            setStatuses(data);
+        }
+    }, []);
+
+    // Fetch available academic levels from the database
+    const fetchAcademicLevels = useCallback(async () => {
+        const res = await fetch('/api/courses/academic-levels');
+        if (res.ok) {
+            const data = await res.json();
+            setAcademicLevels(data);
+        }
+    }, []);
+
     useEffect(() => {
         fetchDepartments();
-    }, [fetchDepartments]);
+        fetchStatuses();
+        fetchAcademicLevels();
+    }, [fetchDepartments, fetchStatuses, fetchAcademicLevels]);
 
     const fetchCourses = useCallback(async () => {
         const params = new URLSearchParams();
@@ -312,7 +338,7 @@ export default function CourseManagementPage() {
                             className="px-4 py-2.5 rounded-xl border border-gray-300 bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-gray-700"
                         >
                             <option value="">All Levels</option>
-                            {ACADEMIC_LEVELS.map(level => (
+                            {academicLevels.map(level => (
                                 <option key={level} value={level}>{level}</option>
                             ))}
                         </select>
@@ -324,7 +350,7 @@ export default function CourseManagementPage() {
                             className="px-4 py-2.5 rounded-xl border border-gray-300 bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-gray-700"
                         >
                             <option value="">All Statuses</option>
-                            {STATUSES.map(status => (
+                            {statuses.map(status => (
                                 <option key={status} value={status}>{status}</option>
                             ))}
                         </select>
@@ -477,6 +503,31 @@ export default function CourseManagementPage() {
                                 <div className="mt-6 pt-6 border-t border-gray-100">
                                     <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
                                     <p className="text-gray-600 text-sm whitespace-pre-wrap">{viewingCourse.description}</p>
+                                </div>
+                            )}
+
+                            {/* Prerequisites */}
+                            {viewingCourse.prerequisites && viewingCourse.prerequisites.length > 0 && (
+                                <div className="mt-6 pt-6 border-t border-gray-100">
+                                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                        <Link2 className="w-5 h-5 text-orange-500" />
+                                        Prerequisites
+                                    </h3>
+                                    <div className="space-y-2">
+                                        {viewingCourse.prerequisites.map(prereq => (
+                                            <div key={prereq.prerequisite_id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="font-mono font-bold text-sm px-2 py-0.5 rounded" style={{ color: '#00558d', background: '#e6f0f5' }}>
+                                                        {prereq.course_code}
+                                                    </span>
+                                                    <span className="text-gray-700">{prereq.title}</span>
+                                                </div>
+                                                <span className="text-sm text-gray-500">
+                                                    Min Grade: <span className="font-medium text-gray-700">{prereq.min_grade ?? 5.0}</span>
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 

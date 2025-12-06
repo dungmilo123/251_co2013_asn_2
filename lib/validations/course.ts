@@ -112,6 +112,15 @@ export const courseCreateSchema = z
       .min(0, "Passing score cannot be negative")
       .max(10, "Passing score cannot exceed 10")
       .optional(),
+
+    prerequisites: z
+      .array(
+        z.object({
+          prerequisite_id: z.coerce.number().int().positive(),
+          min_grade: z.coerce.number().min(0).max(10).optional(),
+        })
+      )
+      .optional(),
   })
   .refine(
     (data) => {
@@ -266,6 +275,16 @@ export const courseUpdateSchema = z
       .number()
       .min(0, "Passing score cannot be negative")
       .max(10, "Passing score cannot exceed 10")
+      .optional()
+      .nullable(),
+
+    prerequisites: z
+      .array(
+        z.object({
+          prerequisite_id: z.coerce.number().int().positive(),
+          min_grade: z.coerce.number().min(0).max(10).optional().nullable(),
+        })
+      )
       .optional()
       .nullable(),
   })

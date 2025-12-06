@@ -2,13 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Loader2, Save } from 'lucide-react';
-import { CourseFormData } from '@/types/course';
+import { Plus, Loader2, Save, Link } from 'lucide-react';
+import { CourseFormData, Prerequisite } from '@/types/course';
 import { courseFormSchema } from './validation';
 import { BasicSection } from './BasicSection';
 import { DetailsSection } from './DetailsSection';
 import { ScheduleSection } from './ScheduleSection';
 import { ExpandableSection } from './ExpandableSection';
+import { PrerequisitesSection } from './PrerequisitesSection';
 
 interface Course {
   course_id: number;
@@ -25,6 +26,7 @@ interface Course {
   enrollment_end_date?: string;
   status?: string;
   passing_score?: number;
+  prerequisites?: Prerequisite[];
 }
 
 interface CourseFormProps {
@@ -57,7 +59,7 @@ export const CourseForm: React.FC<CourseFormProps> = ({
   const isEditMode = mode === 'edit' && !!course;
 
   const methods = useForm<CourseFormData>({
-    resolver: zodResolver(courseFormSchema),
+    resolver: zodResolver(courseFormSchema) as any,
     defaultValues: isEditMode ? {
       course_code: course.course_code,
       title: course.title,
@@ -71,12 +73,14 @@ export const CourseForm: React.FC<CourseFormProps> = ({
       enrollment_start_date: formatDateTimeForInput(course.enrollment_start_date),
       enrollment_end_date: formatDateTimeForInput(course.enrollment_end_date),
       status: course.status || 'Planned',
-      passing_score: course.passing_score || 5.0
+      passing_score: course.passing_score || 5.0,
+      prerequisites: course.prerequisites || []
     } : {
       credits: 3,
       max_capacity: 60,
       status: 'Planned',
-      passing_score: 5.0
+      passing_score: 5.0,
+      prerequisites: []
     }
   });
 
@@ -98,7 +102,8 @@ export const CourseForm: React.FC<CourseFormProps> = ({
         enrollment_start_date: formatDateTimeForInput(course.enrollment_start_date),
         enrollment_end_date: formatDateTimeForInput(course.enrollment_end_date),
         status: course.status || 'Planned',
-        passing_score: course.passing_score || 5.0
+        passing_score: course.passing_score || 5.0,
+        prerequisites: course.prerequisites || []
       });
     }
   }, [course, isEditMode, reset]);
@@ -140,9 +145,17 @@ export const CourseForm: React.FC<CourseFormProps> = ({
     }
   };
 
+  const onFormError = (errors: any) => {
+    console.error('Form validation errors:', errors);
+    const errorMessages = Object.entries(errors)
+      .map(([field, error]: [string, any]) => `${field}: ${error?.message || 'Invalid'}`)
+      .join(', ');
+    setSubmitError(`Validation failed: ${errorMessages}`);
+  };
+
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit, onFormError)} className="space-y-6">
         {submitError && (
           <div className="rounded-xl p-4 bg-red-50 border border-red-200">
             <p className="text-red-600 text-sm">{submitError}</p>
@@ -165,6 +178,14 @@ export const CourseForm: React.FC<CourseFormProps> = ({
           defaultExpanded={isEditMode}
         >
           <ScheduleSection />
+        </ExpandableSection>
+
+        <ExpandableSection
+          title="Prerequisites"
+          icon={<Link className="w-5 h-5" />}
+          defaultExpanded={isEditMode && (course?.prerequisites?.length ?? 0) > 0}
+        >
+          <PrerequisitesSection currentCourseId={course?.course_id} />
         </ExpandableSection>
 
         <div className="flex justify-end gap-4">

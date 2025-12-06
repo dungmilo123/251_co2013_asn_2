@@ -210,10 +210,10 @@ export default function UserManagementPage() {
                                                     </div>
                                                     <span
                                                         className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${user.role === 'Administrator'
-                                                                ? 'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 border border-purple-200'
-                                                                : user.role === 'Instructor'
-                                                                    ? 'bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border border-blue-200'
-                                                                    : 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200'
+                                                            ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                                                            : user.role === 'Instructor'
+                                                                ? 'bg-sky-100 text-sky-800 border border-sky-200'
+                                                                : 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200'
                                                             }`}
                                                     >
                                                         {user.role}
@@ -234,8 +234,8 @@ export default function UserManagementPage() {
                                             <div className="text-right">
                                                 <span
                                                     className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${user.status === 'Active'
-                                                            ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200'
-                                                            : 'bg-gradient-to-r from-red-100 to-pink-100 text-red-800 border border-red-200'
+                                                        ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200'
+                                                        : 'bg-gradient-to-r from-red-100 to-pink-100 text-red-800 border border-red-200'
                                                         }`}
                                                 >
                                                     {user.status}
