@@ -4,20 +4,54 @@ import { requireAdministrator } from '@/lib/auth';
 import { handleApiError } from '@/lib/api-helpers';
 import { courseCreateSchema, type CourseCreateInput } from '@/lib/validations/course';
 
-export async function GET(request : Request){
+export async function GET(request: Request) {
     try {
         // Require Administrator role with valid admin code
         await requireAdministrator();
 
         const { searchParams } = new URL(request.url);
         const search = searchParams.get('search');
+        const department = searchParams.get('department');
+        const academicLevel = searchParams.get('academic_level');
+        const status = searchParams.get('status');
+        const sortBy = searchParams.get('sort_by'); // 'start_date' or 'title'
+        const sortOrder = searchParams.get('sort_order'); // 'asc' or 'desc'
 
         let sql = 'SELECT * FROM Courses';
-        let values: unknown[] = [];
+        const conditions: string[] = [];
+        const values: unknown[] = [];
 
-        if (search){
-            sql += ' WHERE title LIKE ?';
-            values = [`%${search}%`];
+        if (search) {
+            conditions.push('(title LIKE ? OR course_code LIKE ?)');
+            values.push(`%${search}%`, `%${search}%`);
+        }
+
+        if (department) {
+            conditions.push('department = ?');
+            values.push(department);
+        }
+
+        if (academicLevel) {
+            conditions.push('academic_level = ?');
+            values.push(academicLevel);
+        }
+
+        if (status) {
+            conditions.push('status = ?');
+            values.push(status);
+        }
+
+        if (conditions.length > 0) {
+            sql += ' WHERE ' + conditions.join(' AND ');
+        }
+
+        // Add sorting
+        const validSortColumns = ['start_date', 'title'];
+        if (sortBy && validSortColumns.includes(sortBy)) {
+            const order = sortOrder === 'desc' ? 'DESC' : 'ASC';
+            sql += ` ORDER BY ${sortBy} ${order}`;
+        } else {
+            sql += ' ORDER BY course_id DESC'; // Default: newest first
         }
 
         const courses = await query({ query: sql, values });
@@ -27,8 +61,8 @@ export async function GET(request : Request){
     }
 }
 
-export async function POST(request: Request){
-    try{
+export async function POST(request: Request) {
+    try {
         // Require Administrator role with valid admin code
         await requireAdministrator();
 
@@ -54,7 +88,7 @@ export async function POST(request: Request){
         // Build the INSERT query dynamically based on provided fields
         const fields = ['course_code', 'title', 'credits'];
         const placeholders = ['?', '?', '?'];
-        const values = [validatedData.course_code, validatedData.title, validatedData.credits];
+        const values: (string | number | Date | null)[] = [validatedData.course_code, validatedData.title, validatedData.credits];
 
         // Add optional fields if provided
         const optionalFields = [
@@ -86,15 +120,36 @@ export async function POST(request: Request){
             values
         });
 
+        const newCourseId = (result as any).insertId;
+
+        // Insert prerequisites if provided
+        if (validatedData.prerequisites && validatedData.prerequisites.length > 0) {
+            for (const prereq of validatedData.prerequisites) {
+                await query({
+                    query: 'INSERT INTO Prerequisites (course_id, prerequisite_id, min_grade) VALUES (?, ?, ?)',
+                    values: [newCourseId, prereq.prerequisite_id, prereq.min_grade ?? 5.0]
+                });
+            }
+        }
+
         // Fetch the created course for response
         const createdCourse = await query({
             query: 'SELECT * FROM Courses WHERE course_id = ?',
-            values: [(result as any).insertId]
+            values: [newCourseId]
+        });
+
+        // Fetch prerequisites for response
+        const prerequisites = await query({
+            query: `SELECT p.prerequisite_id, p.min_grade, c.course_code, c.title 
+                    FROM Prerequisites p 
+                    JOIN Courses c ON p.prerequisite_id = c.course_id 
+                    WHERE p.course_id = ?`,
+            values: [newCourseId]
         });
 
         return NextResponse.json({
             message: 'Course created successfully',
-            course: createdCourse[0]
+            course: { ...(createdCourse[0] as object), prerequisites }
         });
     } catch (error: unknown) {
         // Handle Zod validation errors

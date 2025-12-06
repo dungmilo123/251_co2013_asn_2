@@ -13,7 +13,21 @@ export const courseFormSchema = z.object({
   enrollment_start_date: z.string().optional(),
   enrollment_end_date: z.string().optional(),
   status: z.string().optional(),
-  passing_score: z.number().min(0, 'Passing score cannot be negative').max(10, 'Passing score cannot exceed 10').optional()
+  passing_score: z.number().min(0, 'Passing score cannot be negative').max(10, 'Passing score cannot exceed 10').optional(),
+  prerequisites: z.array(
+    z.object({
+      prerequisite_id: z.preprocess(
+        (val) => (typeof val === 'string' ? parseInt(val, 10) : val),
+        z.number()
+      ),
+      course_code: z.string().optional().nullable(),
+      title: z.string().optional().nullable(),
+      min_grade: z.preprocess(
+        (val) => (val === '' || val === null || val === undefined ? null : typeof val === 'string' ? parseFloat(val) : val),
+        z.number().min(0).max(10).nullable().optional()
+      )
+    })
+  ).optional().nullable()
 }).refine((data) => {
   if (data.start_date && data.end_date) {
     return new Date(data.end_date) > new Date(data.start_date);

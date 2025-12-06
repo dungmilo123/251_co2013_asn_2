@@ -207,7 +207,7 @@ export default function DashboardLayout({
                                     {/* User Profile */}
                                     <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-linear-to-r from-white to-gray-50 border border-gray-200 shadow-md user-card">
                                         <div className="relative">
-                                            <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                                            <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#00558d' }}>
                                                 <User className="w-5 h-5 text-white" />
                                             </div>
                                             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
