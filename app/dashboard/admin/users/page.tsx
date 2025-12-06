@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { Users as UsersIcon, ArrowLeft, Search, Plus, Eye, Pencil, Trash2, X, GraduationCap, Briefcase, Shield, Phone, Calendar, Building, Mail } from 'lucide-react';
+import { Users as UsersIcon, ArrowLeft, Search, Plus, Eye, Pencil, Trash2, X, GraduationCap, Briefcase, Shield, Phone, Calendar, Building, Mail, Filter, ChevronUp, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { UserForm } from '@/components/admin/UserForm';
 import { UserWithRoleData } from '@/types/user';
@@ -20,19 +20,54 @@ interface User {
 
 export default function UserManagementPage() {
     const [users, setUsers] = useState<User[]>([]);
+    const [roles, setRoles] = useState<string[]>([]);
+    const [statuses, setStatuses] = useState<string[]>([]);
     const [search, setSearch] = useState('');
-    const [roleFilter, setRoleFilter] = useState('all');
+    const [roleFilter, setRoleFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
+    const [sortField, setSortField] = useState<'fullname' | null>(null);
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     const [showForm, setShowForm] = useState(false);
     const [editingUser, setEditingUser] = useState<UserWithRoleData | null>(null);
     const [viewingUser, setViewingUser] = useState<UserWithRoleData | null>(null);
     const [loadingUser, setLoadingUser] = useState<number | null>(null);
 
+    // Fetch available roles from the database
+    const fetchRoles = useCallback(async () => {
+        const res = await fetch('/api/admin/users/roles');
+        if (res.ok) {
+            setRoles(await res.json());
+        }
+    }, []);
+
+    // Fetch available statuses from the database
+    const fetchStatuses = useCallback(async () => {
+        const res = await fetch('/api/admin/users/statuses');
+        if (res.ok) {
+            setStatuses(await res.json());
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchRoles();
+        fetchStatuses();
+    }, [fetchRoles, fetchStatuses]);
+
     const fetchUsers = useCallback(async () => {
-        const res = await fetch('/api/admin/users');
+        const params = new URLSearchParams();
+        if (search) params.set('search', search);
+        if (roleFilter) params.set('role', roleFilter);
+        if (statusFilter) params.set('status', statusFilter);
+        if (sortField) {
+            params.set('sort_by', sortField);
+            params.set('sort_order', sortOrder);
+        }
+
+        const res = await fetch(`/api/admin/users?${params.toString()}`);
         if (res.ok) {
             setUsers(await res.json());
         }
-    }, []);
+    }, [search, roleFilter, statusFilter, sortField, sortOrder]);
 
     useEffect(() => {
         fetchUsers();
@@ -93,16 +128,32 @@ export default function UserManagementPage() {
         setViewingUser(null);
     };
 
-    const filteredUsers = users.filter(user => {
-        const matchesSearch =
-            user.username.toLowerCase().includes(search.toLowerCase()) ||
-            user.email.toLowerCase().includes(search.toLowerCase()) ||
-            `${user.first_name} ${user.last_name}`.toLowerCase().includes(search.toLowerCase());
+    const handleSort = (field: 'fullname') => {
+        if (sortField === field) {
+            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortOrder('asc');
+        }
+    };
 
-        const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+    const SortIcon = ({ field }: { field: 'fullname' }) => {
+        if (sortField !== field) {
+            return <ChevronUp className="w-4 h-4 text-gray-300" />;
+        }
+        return sortOrder === 'asc'
+            ? <ChevronUp className="w-4 h-4 text-teal-600" />
+            : <ChevronDown className="w-4 h-4 text-teal-600" />;
+    };
 
-        return matchesSearch && matchesRole;
-    });
+    const clearFilters = () => {
+        setRoleFilter('');
+        setStatusFilter('');
+        setSearch('');
+        setSortField(null);
+    };
+
+    const hasActiveFilters = roleFilter || statusFilter || search;
 
     const stats = {
         total: users.length,
@@ -205,6 +256,16 @@ export default function UserManagementPage() {
         .table-row:hover {
           background-color: #f8fafc;
         }
+
+        .table-header-sortable {
+          cursor: pointer;
+          user-select: none;
+          transition: color 0.2s;
+        }
+
+        .table-header-sortable:hover {
+          color: #0d9488;
+        }
       `}</style>
 
             <div className="space-y-6" style={{ fontFamily: "'DM Sans', sans-serif" }}>
@@ -256,29 +317,60 @@ export default function UserManagementPage() {
                     </div>
                 </div>
 
-                {/* Filters and Add Button */}
-                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between animate-fade-in" style={{ animationDelay: '0.3s' }}>
-                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center flex-1">
-                        <div className="relative flex-1 max-w-md">
+                {/* Filters and Search Bar */}
+                <div className="bg-white rounded-2xl shadow-lg p-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+                    <div className="flex items-center gap-2 mb-4">
+                        <Filter className="w-5 h-5 text-gray-500" />
+                        <h3 className="font-semibold text-gray-900">Filters</h3>
+                        {hasActiveFilters && (
+                            <button
+                                onClick={clearFilters}
+                                className="ml-auto text-sm text-teal-600 hover:text-teal-800 font-medium"
+                            >
+                                Clear All
+                            </button>
+                        )}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {/* Search */}
+                        <div className="relative lg:col-span-2">
                             <input
-                                placeholder="Search users..."
-                                className="w-full px-4 py-3 pl-10 rounded-xl border border-gray-300 bg-white focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all placeholder:text-gray-500 text-black"
+                                placeholder="Search by username or email..."
+                                className="w-full px-4 py-2.5 pl-10 rounded-xl border border-gray-300 bg-white focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all placeholder:text-gray-500 text-black"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                             />
-                            <Search className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+                            <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
                         </div>
+
+                        {/* Role Filter */}
                         <select
                             value={roleFilter}
                             onChange={(e) => setRoleFilter(e.target.value)}
-                            className="px-4 py-3 rounded-xl border border-gray-300 bg-white focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all text-gray-700"
+                            className="px-4 py-2.5 rounded-xl border border-gray-300 bg-white focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all text-gray-700"
                         >
-                            <option value="all">All Roles</option>
-                            <option value="Student">Students</option>
-                            <option value="Instructor">Instructors</option>
-                            <option value="Administrator">Administrators</option>
+                            <option value="">All Roles</option>
+                            {roles.map(role => (
+                                <option key={role} value={role}>{role}s</option>
+                            ))}
+                        </select>
+
+                        {/* Status Filter */}
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="px-4 py-2.5 rounded-xl border border-gray-300 bg-white focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all text-gray-700"
+                        >
+                            <option value="">All Statuses</option>
+                            {statuses.map(status => (
+                                <option key={status} value={status}>{status}</option>
+                            ))}
                         </select>
                     </div>
+                </div>
+
+                {/* Add User Button */}
+                <div className="flex justify-end">
                     <button
                         onClick={() => {
                             setShowForm(!showForm);
@@ -517,18 +609,18 @@ export default function UserManagementPage() {
                 <div className="bg-white rounded-2xl shadow-lg overflow-hidden animate-fade-in" style={{ animationDelay: '0.4s' }}>
                     <div className="px-8 py-6 border-b border-gray-100">
                         <h2 className="text-xl font-bold text-gray-900">
-                            User Catalog ({filteredUsers.length} {filteredUsers.length === 1 ? 'user' : 'users'})
+                            User Catalog ({users.length} {users.length === 1 ? 'user' : 'users'})
                         </h2>
                     </div>
                     <div className="overflow-x-auto">
-                        {filteredUsers.length === 0 ? (
+                        {users.length === 0 ? (
                             <div className="text-center py-12">
                                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
                                     <UsersIcon className="w-8 h-8 text-gray-400" />
                                 </div>
                                 <p className="text-gray-500 text-lg font-medium">No users found</p>
                                 <p className="text-gray-400 mt-2">
-                                    {search || roleFilter !== 'all' ? 'Try adjusting your search or filter' : 'Click "Add User" to create your first user'}
+                                    {hasActiveFilters ? 'Try adjusting your search or filters' : 'Click "Add User" to create your first user'}
                                 </p>
                             </div>
                         ) : (
@@ -538,8 +630,14 @@ export default function UserManagementPage() {
                                         <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                             Username
                                         </th>
-                                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                            Full Name
+                                        <th
+                                            className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider table-header-sortable"
+                                            onClick={() => handleSort('fullname')}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                Full Name
+                                                <SortIcon field="fullname" />
+                                            </div>
                                         </th>
                                         <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                             Email
@@ -559,7 +657,7 @@ export default function UserManagementPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
-                                    {filteredUsers.map((user) => (
+                                    {users.map((user) => (
                                         <tr key={user.user_id} className="table-row">
                                             <td className="px-6 py-4">
                                                 <span className="px-3 py-1 rounded-lg font-mono font-bold text-sm" style={{ color: '#0d9488', background: '#ccfbf1' }}>
