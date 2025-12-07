@@ -94,11 +94,18 @@ export async function GET() {
         // Check capacity
         const isFull = course.enrolled_count >= course.max_capacity;
 
+        // Call the stored function to validate prerequisites (database-level check)
+        const functionResult = await query({
+          query: `SELECT check_prereq_status(?, ?) as prereqs_met`,
+          values: [session.studentCode, course.course_id],
+        });
+        const dbPrereqsMet = functionResult[0]?.prereqs_met === 1;
+
         return {
           ...course,
           prerequisites: prereqDetails,
-          prereqsMet,
-          canEnroll: prereqsMet && !isFull,
+          prereqsMet: dbPrereqsMet, // Use the database function result
+          canEnroll: dbPrereqsMet && !isFull,
           isFull,
         };
       })
