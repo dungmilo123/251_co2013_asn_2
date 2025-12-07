@@ -167,7 +167,7 @@ export default function AdminDashboard() {
                 <h2 className="text-2xl font-bold text-gray-900 mb-3">User Management</h2>
                 <p className="text-gray-600 leading-relaxed">
                   View and manage all system users including students, instructors, and administrators.
-                  Handle user roles, permissions, and account statuses.
+                  Handle user roles, permissions, account statuses, and maintain detailed user profiles.
                 </p>
               </div>
 
