@@ -39,8 +39,13 @@ export default function DashboardLayout({
 
     const handleLogout = async () => {
         try {
-            await fetch("/api/logout", { method: "POST" });
-            router.push("/");
+            const response = await fetch("/api/logout", { method: "POST" });
+            if (response.ok) {
+                // Use hard refresh to ensure cookie is cleared and middleware picks up the change
+                window.location.href = "/";
+            } else {
+                console.error("Logout failed: Server returned an error");
+            }
         } catch (error) {
             console.error("Logout failed:", error);
         }
