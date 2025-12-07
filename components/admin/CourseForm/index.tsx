@@ -60,6 +60,7 @@ export const CourseForm: React.FC<CourseFormProps> = ({
 
   const methods = useForm<CourseFormData>({
     resolver: zodResolver(courseFormSchema) as any,
+    mode: 'all', // Validate on change, blur, and submit
     defaultValues: isEditMode ? {
       course_code: course.course_code,
       title: course.title,
@@ -76,8 +77,17 @@ export const CourseForm: React.FC<CourseFormProps> = ({
       passing_score: course.passing_score || 5.0,
       prerequisites: course.prerequisites || []
     } : {
+      course_code: '',
+      title: '',
       credits: 3,
+      department: '',
+      academic_level: '',
       max_capacity: 60,
+      start_date: '',
+      end_date: '',
+      description: '',
+      enrollment_start_date: '',
+      enrollment_end_date: '',
       status: 'Planned',
       passing_score: 5.0,
       prerequisites: []

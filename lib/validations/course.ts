@@ -10,34 +10,35 @@ export const courseCreateSchema = z
       .pipe(
         z
           .string()
-          .min(3, "Course code must be at least 3 characters")
-          .max(20, "Course code cannot exceed 20 characters")
+          .min(3, "Course code is too short — use at least 3 characters (e.g., 'CS101')")
+          .max(20, "Course code is too long — please use 20 characters or fewer")
           .regex(
             /^[A-Z0-9]+$/,
-            "Course code must contain only uppercase letters and numbers"
+            "Course code can only contain letters and numbers (no spaces or special characters)"
           )
       ),
 
     title: z
       .string()
-      .min(5, "Course title must be at least 5 characters")
-      .max(255, "Course title cannot exceed 255 characters")
+      .min(5, "Course title is too short — please provide a more descriptive name (at least 5 characters)")
+      .max(255, "Course title is too long — please use 255 characters or fewer")
       .trim(),
 
     credits: z.coerce
       .number()
-      .int("Credits must be an integer")
-      .min(1, "Credits must be at least 1")
-      .max(10, "Credits cannot exceed 10"),
+      .int("Credits must be a whole number (e.g., 3, not 3.5)")
+      .min(1, "Course must be worth at least 1 credit")
+      .max(10, "Course cannot exceed 10 credits — contact admin if this is intentional"),
 
     department: z
       .string()
-      .max(100, "Department name cannot exceed 100 characters")
+      .max(100, "Department name is too long — please use 100 characters or fewer")
       .trim()
       .optional(),
 
     academic_level: z
-      .string()
+      .string({ error: "Academic level is required" })
+      .min(1, "Please select an academic level")
       .refine(
         (val) =>
           ["Undergraduate", "Graduate", "Postgraduate", "Certificate"].includes(
@@ -45,53 +46,52 @@ export const courseCreateSchema = z
           ),
         {
           message:
-            "Academic level must be one of: Undergraduate, Graduate, Postgraduate, Certificate",
+            "Please select a valid academic level: Undergraduate, Graduate, Postgraduate, or Certificate",
         }
-      )
-      .optional(),
+      ),
 
     max_capacity: z.coerce
       .number()
-      .int("Maximum capacity must be an integer")
-      .min(1, "Maximum capacity must be at least 1")
-      .max(1000, "Maximum capacity cannot exceed 1000")
+      .int("Capacity must be a whole number of students")
+      .min(1, "Course must allow at least 1 student to enroll")
+      .max(1000, "Course capacity cannot exceed 1000 students — contact admin for larger courses")
       .optional(),
 
     start_date: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, "Start date must be in YYYY-MM-DD format")
-      .optional()
-      .transform((val) => (val ? new Date(val) : undefined)),
+      .string({ error: "Course start date is required" })
+      .min(1, "Please select a course start date")
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format — please use YYYY-MM-DD (e.g., 2024-09-01)")
+      .transform((val) => new Date(val)),
 
     end_date: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, "End date must be in YYYY-MM-DD format")
-      .optional()
-      .transform((val) => (val ? new Date(val) : undefined)),
+      .string({ error: "Course end date is required" })
+      .min(1, "Please select a course end date")
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format — please use YYYY-MM-DD (e.g., 2024-12-15)")
+      .transform((val) => new Date(val)),
 
     description: z
       .string()
-      .max(5000, "Description cannot exceed 5000 characters")
+      .max(5000, "Description is too long — please use 5000 characters or fewer")
       .trim()
       .optional(),
 
     enrollment_start_date: z
-      .string()
+      .string({ error: "Enrollment start date is required" })
+      .min(1, "Please select when enrollment opens")
       .regex(
         /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/,
-        "Enrollment start date must be in YYYY-MM-DDTHH:MM format"
+        "Invalid enrollment date format — please use YYYY-MM-DDTHH:MM (e.g., 2024-08-15T09:00)"
       )
-      .optional()
-      .transform((val) => (val ? new Date(val) : undefined)),
+      .transform((val) => new Date(val)),
 
     enrollment_end_date: z
-      .string()
+      .string({ error: "Enrollment end date is required" })
+      .min(1, "Please select when enrollment closes")
       .regex(
         /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/,
-        "Enrollment end date must be in YYYY-MM-DDTHH:MM format"
+        "Invalid enrollment date format — please use YYYY-MM-DDTHH:MM (e.g., 2024-09-01T17:00)"
       )
-      .optional()
-      .transform((val) => (val ? new Date(val) : undefined)),
+      .transform((val) => new Date(val)),
 
     status: z
       .string()
@@ -102,7 +102,7 @@ export const courseCreateSchema = z
           ),
         {
           message:
-            "Status must be one of: Planned, Active, Completed, Cancelled, Suspended",
+            "Please select a valid status: Planned, Active, Completed, Cancelled, or Suspended",
         }
       )
       .optional(),
@@ -110,14 +110,21 @@ export const courseCreateSchema = z
     passing_score: z.coerce
       .number()
       .min(0, "Passing score cannot be negative")
-      .max(10, "Passing score cannot exceed 10")
+      .max(10, "Passing score cannot exceed 10 (we use a 0-10 grading scale)")
       .optional(),
 
     prerequisites: z
       .array(
         z.object({
-          prerequisite_id: z.coerce.number().int().positive(),
-          min_grade: z.coerce.number().min(0).max(10).optional(),
+          prerequisite_id: z.coerce
+            .number()
+            .int("Prerequisite course ID must be valid")
+            .positive("Please select a valid prerequisite course"),
+          min_grade: z.coerce
+            .number()
+            .min(0, "Minimum grade cannot be negative")
+            .max(10, "Minimum grade cannot exceed 10")
+            .optional(),
         })
       )
       .optional(),
@@ -131,7 +138,7 @@ export const courseCreateSchema = z
       return true;
     },
     {
-      message: "End date must be after start date",
+      message: "Course end date must be after the start date — please check your dates",
       path: ["end_date"],
     }
   )
@@ -144,7 +151,7 @@ export const courseCreateSchema = z
       return true;
     },
     {
-      message: "Enrollment end date must be after enrollment start date",
+      message: "Enrollment closing date must be after the enrollment opening date",
       path: ["enrollment_end_date"],
     }
   );
@@ -162,32 +169,32 @@ export const courseUpdateSchema = z
       .pipe(
         z
           .string()
-          .min(3, "Course code must be at least 3 characters")
-          .max(20, "Course code cannot exceed 20 characters")
+          .min(3, "Course code is too short — use at least 3 characters (e.g., 'CS101')")
+          .max(20, "Course code is too long — please use 20 characters or fewer")
           .regex(
             /^[A-Z0-9]+$/,
-            "Course code must contain only uppercase letters and numbers"
+            "Course code can only contain letters and numbers (no spaces or special characters)"
           )
       )
       .optional(),
 
     title: z
       .string()
-      .min(5, "Course title must be at least 5 characters")
-      .max(255, "Course title cannot exceed 255 characters")
+      .min(5, "Course title is too short — please provide a more descriptive name (at least 5 characters)")
+      .max(255, "Course title is too long — please use 255 characters or fewer")
       .trim()
       .optional(),
 
     credits: z.coerce
       .number()
-      .int("Credits must be an integer")
-      .min(1, "Credits must be at least 1")
-      .max(10, "Credits cannot exceed 10")
+      .int("Credits must be a whole number (e.g., 3, not 3.5)")
+      .min(1, "Course must be worth at least 1 credit")
+      .max(10, "Course cannot exceed 10 credits — contact admin if this is intentional")
       .optional(),
 
     department: z
       .string()
-      .max(100, "Department name cannot exceed 100 characters")
+      .max(100, "Department name is too long — please use 100 characters or fewer")
       .trim()
       .optional()
       .nullable(),
@@ -201,7 +208,7 @@ export const courseUpdateSchema = z
           ),
         {
           message:
-            "Academic level must be one of: Undergraduate, Graduate, Postgraduate, Certificate",
+            "Please select a valid academic level: Undergraduate, Graduate, Postgraduate, or Certificate",
         }
       )
       .optional()
@@ -209,29 +216,29 @@ export const courseUpdateSchema = z
 
     max_capacity: z.coerce
       .number()
-      .int("Maximum capacity must be an integer")
-      .min(1, "Maximum capacity must be at least 1")
-      .max(1000, "Maximum capacity cannot exceed 1000")
+      .int("Capacity must be a whole number of students")
+      .min(1, "Course must allow at least 1 student to enroll")
+      .max(1000, "Course capacity cannot exceed 1000 students — contact admin for larger courses")
       .optional()
       .nullable(),
 
     start_date: z
       .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, "Start date must be in YYYY-MM-DD format")
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format — please use YYYY-MM-DD (e.g., 2024-09-01)")
       .optional()
       .nullable()
       .transform((val) => (val ? new Date(val) : null)),
 
     end_date: z
       .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, "End date must be in YYYY-MM-DD format")
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format — please use YYYY-MM-DD (e.g., 2024-12-15)")
       .optional()
       .nullable()
       .transform((val) => (val ? new Date(val) : null)),
 
     description: z
       .string()
-      .max(5000, "Description cannot exceed 5000 characters")
+      .max(5000, "Description is too long — please use 5000 characters or fewer")
       .trim()
       .optional()
       .nullable(),
@@ -240,7 +247,7 @@ export const courseUpdateSchema = z
       .string()
       .regex(
         /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/,
-        "Enrollment start date must be in YYYY-MM-DDTHH:MM format"
+        "Invalid enrollment date format — please use YYYY-MM-DDTHH:MM (e.g., 2024-08-15T09:00)"
       )
       .optional()
       .nullable()
@@ -250,7 +257,7 @@ export const courseUpdateSchema = z
       .string()
       .regex(
         /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/,
-        "Enrollment end date must be in YYYY-MM-DDTHH:MM format"
+        "Invalid enrollment date format — please use YYYY-MM-DDTHH:MM (e.g., 2024-09-01T17:00)"
       )
       .optional()
       .nullable()
@@ -265,7 +272,7 @@ export const courseUpdateSchema = z
           ),
         {
           message:
-            "Status must be one of: Planned, Active, Completed, Cancelled, Suspended",
+            "Please select a valid status: Planned, Active, Completed, Cancelled, or Suspended",
         }
       )
       .optional()
@@ -274,15 +281,23 @@ export const courseUpdateSchema = z
     passing_score: z.coerce
       .number()
       .min(0, "Passing score cannot be negative")
-      .max(10, "Passing score cannot exceed 10")
+      .max(10, "Passing score cannot exceed 10 (we use a 0-10 grading scale)")
       .optional()
       .nullable(),
 
     prerequisites: z
       .array(
         z.object({
-          prerequisite_id: z.coerce.number().int().positive(),
-          min_grade: z.coerce.number().min(0).max(10).optional().nullable(),
+          prerequisite_id: z.coerce
+            .number()
+            .int("Prerequisite course ID must be valid")
+            .positive("Please select a valid prerequisite course"),
+          min_grade: z.coerce
+            .number()
+            .min(0, "Minimum grade cannot be negative")
+            .max(10, "Minimum grade cannot exceed 10")
+            .optional()
+            .nullable(),
         })
       )
       .optional()
@@ -297,7 +312,7 @@ export const courseUpdateSchema = z
       return true;
     },
     {
-      message: "End date must be after start date",
+      message: "Course end date must be after the start date — please check your dates",
       path: ["end_date"],
     }
   )
@@ -310,7 +325,7 @@ export const courseUpdateSchema = z
       return true;
     },
     {
-      message: "Enrollment end date must be after enrollment start date",
+      message: "Enrollment closing date must be after the enrollment opening date",
       path: ["enrollment_end_date"],
     }
   );

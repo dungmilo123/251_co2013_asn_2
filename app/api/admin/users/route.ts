@@ -5,10 +5,44 @@ import { handleApiError } from '@/lib/api-helpers';
 import { userCreateSchema } from '@/lib/validations/user';
 
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     // Require Administrator role with valid admin code
     await requireAdministrator();
+
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get('search') || '';
+    const role = searchParams.get('role') || '';
+    const status = searchParams.get('status') || '';
+    const sortBy = searchParams.get('sort_by') || '';
+    const sortOrder = searchParams.get('sort_order') === 'desc' ? 'DESC' : 'ASC';
+
+    // Build dynamic WHERE clause
+    const conditions: string[] = [];
+    const values: (string | number)[] = [];
+
+    if (search) {
+      conditions.push('(username LIKE ? OR email LIKE ?)');
+      values.push(`%${search}%`, `%${search}%`);
+    }
+
+    if (role) {
+      conditions.push('role = ?');
+      values.push(role);
+    }
+
+    if (status) {
+      conditions.push('status = ?');
+      values.push(status);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    // Build ORDER BY clause
+    let orderByClause = 'ORDER BY role, last_name, first_name';
+    if (sortBy === 'fullname') {
+      orderByClause = `ORDER BY CONCAT(first_name, ' ', last_name) ${sortOrder}`;
+    }
 
     // Get all users with their role information
     const users = await query({
@@ -25,9 +59,10 @@ export async function GET() {
           last_login,
           date_of_birth
         FROM Users
-        ORDER BY role, last_name, first_name
+        ${whereClause}
+        ${orderByClause}
       `,
-      values: [],
+      values,
     });
 
     return NextResponse.json(users);
